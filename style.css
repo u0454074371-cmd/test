@@ -1413,8 +1413,11 @@ header.top a:hover { color: var(--gold-soft); border-color: var(--gold); }
 }
 .admin-back-link:hover { color: var(--gold-soft); }
 
-.admin-restaurant-card { flex-wrap: wrap; gap: 10px; }
-.admin-restaurant-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.admin-wrap { max-width: 760px; }
+
+.admin-restaurant-card { flex-wrap: wrap; gap: 10px; align-items: flex-start; padding: 16px 18px; }
+.admin-restaurant-card .restaurant-card-main { min-width: 220px; }
+.admin-restaurant-actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
 
 .landing-topbar {
   display: flex;
