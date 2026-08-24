@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant beheer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" id="app-style-link">
+<script>document.getElementById('app-style-link').setAttribute('href', 'style.css?v=' + Date.now());</script>
+<script>
+  // Simpele toegangscheck: zonder geldige sessie meteen terug naar het startscherm.
+  if (sessionStorage.getItem('isRestaurantAdmin') !== '1') {
+    window.location.href = 'index.html';
+  }
+</script>
+</head>
+<body>
+
+<div class="landing-wrap">
+  <div class="landing-topbar" style="justify-content:space-between;">
+    <a href="index.html" class="admin-back-link">← Terug</a>
+    <button type="button" class="updates-btn" id="btn-admin-logout">🚪 Uitloggen</button>
+  </div>
+  <div class="landing-emblem">🔧</div>
+  <h1 class="brand-name">Restaurant beheer</h1>
+  <p class="brand-sub">Alle restaurants in het systeem</p>
+
+  <div class="landing-section">
+    <div id="admin-restaurant-list" class="my-restaurants"></div>
+    <div class="empty-msg" id="admin-empty-msg" style="display:none;">Nog geen restaurants aangemaakt.</div>
+  </div>
+</div>
+
+<!-- Modal: restaurantnaam bewerken (admin) -->
+<div class="modal-overlay" id="modal-admin-rename">
+  <div class="modal-box">
+    <div class="modal-title">Restaurantnaam wijzigen</div>
+    <input type="text" id="admin-rename-input" class="modal-input" maxlength="40">
+    <div class="modal-error" id="admin-rename-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="admin-rename-confirm">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script>
+  (function () {
+    var v = Date.now();
+    ['firebase-config.js', 'admin.js'].forEach(function (file) {
+      document.write('<script src="' + file + '?v=' + v + '"><' + '/script>');
+    });
+  })();
+</script>
+
+</body>
+</html>

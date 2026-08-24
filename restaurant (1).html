@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bestelsysteem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Work+Sans:wght@400;500;600;700&family=Merriweather:wght@400;700&family=Cormorant+Garamond:wght@400;600;700&family=Lora:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;600;700&family=Raleway:wght@400;600;700&family=Oswald:wght@400;600;700&family=Caveat:wght@500;700&family=Bebas+Neue&family=Abril+Fatface&family=Roboto+Slab:wght@400;600;700&family=Josefin+Sans:wght@400;600;700&family=Dancing+Script:wght@500;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" id="app-style-link">
+<script>document.getElementById('app-style-link').setAttribute('href', 'style.css?v=' + Date.now());</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="wrap app-wrap">
+  <header class="top">
+    <div class="top-title-group">
+      <h1 id="restaurant-title">Restaurant</h1>
+      <span class="my-name-badge" id="my-name-badge"></span>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="updates-btn" id="btn-updates">🆕 Update log</button>
+      <a href="index.html" id="back-link">← Restaurants</a>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <button type="button" class="tab-btn active" data-tab="bestellen">🍽 Bestellen</button>
+    <button type="button" class="tab-btn" data-tab="voorraad">📦 Voorraad</button>
+    <button type="button" class="tab-btn" data-tab="keuken">🔔 Keuken</button>
+    <button type="button" class="tab-btn" data-tab="gereed">✅ Gereed</button>
+    <button type="button" class="tab-btn" data-tab="historie">🧾 Historie</button>
+    <button type="button" class="tab-btn" data-tab="instellingen">⚙️ Instellingen</button>
+  </nav>
+
+  <!-- ===== BESTELLEN ===== -->
+  <section class="tab-panel active" id="panel-bestellen">
+    <div class="fp-legend">
+      <span class="fp-dot vrij"></span> Vrij &nbsp;&nbsp;<span class="fp-dot bezet"></span> Bezet — tik op een tafel om te bestellen
+    </div>
+    <div class="floorplan-viewport">
+      <div class="floorplan-canvas" id="order-canvas"></div>
+    </div>
+    <div class="empty-msg" id="order-no-tables" style="display:none;">Nog geen plattegrond. Ga naar Instellingen → Plattegrond om tafels toe te voegen.</div>
+  </section>
+
+  <!-- ===== VOORRAAD ===== -->
+  <section class="tab-panel" id="panel-voorraad">
+    <div class="settings-section-title">Producten</div>
+    <div class="voorraad-list" id="voorraad-product-list"></div>
+    <div class="settings-section-title" style="margin-top:22px;">Opmerkingen</div>
+    <p class="modal-text" style="margin-top:0;">Opmerkingen (zoals extra saus) die je bij producten kunt kiezen.</p>
+    <div class="voorraad-list" id="voorraad-optie-list"></div>
+  </section>
+
+  <!-- ===== KEUKEN ===== -->
+  <section class="tab-panel" id="panel-keuken">
+    <div class="kitchen-count" id="kitchen-count">Nieuwe bestellingen worden hier automatisch getoond.</div>
+    <div class="kitchen-columns">
+      <div class="kitchen-column">
+        <h3 class="kitchen-subheading">📥 Binnengekomen</h3>
+        <div class="kitchen-list" id="kitchen-list-nieuw">
+          <div class="empty-msg">Nog geen nieuwe bestellingen</div>
+        </div>
+      </div>
+      <div class="kitchen-column">
+        <h3 class="kitchen-subheading">🔥 In bereiding</h3>
+        <div class="kitchen-list" id="kitchen-list-bereiden">
+          <div class="empty-msg">Nog niets in bereiding</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== GEREED ===== -->
+  <section class="tab-panel" id="panel-gereed">
+    <div class="kitchen-count" id="ready-count">Klaargemaakte bestellingen wachtend op bezorging.</div>
+    <div class="kitchen-list" id="ready-list">
+      <div class="empty-msg">Geen klaargemaakte bestellingen</div>
+    </div>
+  </section>
+
+  <!-- ===== HISTORIE ===== -->
+  <section class="tab-panel" id="panel-historie">
+    <div class="history-panel-head">
+      <span id="history-count">Alle afgerekende bestellingen.</span>
+      <button type="button" class="reset-btn" id="btn-reset-history">Historie resetten</button>
+    </div>
+    <div class="kitchen-list" id="history-list">
+      <div class="empty-msg">Nog geen historie</div>
+    </div>
+    <div class="history-summary" id="history-summary"></div>
+  </section>
+
+  <!-- ===== INSTELLINGEN ===== -->
+  <section class="tab-panel" id="panel-instellingen">
+    <div class="settings-subnav">
+      <button type="button" class="subtab-btn active" data-subtab="plattegrond">Plattegrond</button>
+      <button type="button" class="subtab-btn" data-subtab="producten">Producten</button>
+      <button type="button" class="subtab-btn" id="subtab-btn-leden" data-subtab="leden">Leden</button>
+      <button type="button" class="subtab-btn" data-subtab="algemeen">Algemeen</button>
+      <button type="button" class="subtab-btn" data-subtab="zelfservice">Zelfservice QR</button>
+    </div>
+
+    <div class="subtab-panel active" id="subpanel-plattegrond">
+      <div class="fp-toolbar">
+        <button type="button" class="fp-tool-btn" id="tool-add-area">📍 Gebied</button>
+        <button type="button" class="fp-tool-btn" id="tool-add-table">🪑 Tafel</button>
+        <button type="button" class="fp-tool-btn" id="tool-add-bank">🛋️ Bank</button>
+        <button type="button" class="fp-tool-btn" id="tool-add-bar">🍸 Bar</button>
+        <button type="button" class="fp-tool-btn" id="tool-add-keuken">🧑‍🍳 Keuken</button>
+        <button type="button" class="fp-tool-btn danger" id="tool-delete">🗑 Verwijderen</button>
+      </div>
+      <div class="fp-gridsize-row" id="fp-gridsize-row">
+        <span class="fp-gridsize-label">Grootte plattegrond (vierkantjes)</span>
+        <div class="fp-gridsize-controls">
+          <button type="button" class="fp-tool-btn" id="grid-size-minus">−</button>
+          <span class="fp-gridsize-value" id="grid-size-value">20 × 20</span>
+          <button type="button" class="fp-tool-btn" id="grid-size-plus">+</button>
+        </div>
+      </div>
+      <div class="fp-hint" id="fp-hint">Sleep tafels en gebieden om ze te verplaatsen. Sleep een hoek van een gebied (linksboven of rechtsonder) om het aan die kant te vergroten of verkleinen.</div>
+      <div class="floorplan-viewport">
+        <div class="floorplan-canvas" id="edit-canvas"></div>
+      </div>
+    </div>
+
+    <div class="subtab-panel" id="subpanel-producten">
+      <p class="modal-text" id="producten-readonly-note" style="display:none;">Alleen de eigenaar kan producten toevoegen, bewerken of verwijderen.</p>
+      <button type="button" class="primary-btn" id="btn-add-product">+ Nieuw product</button>
+      <div class="settings-product-list" id="settings-product-list"></div>
+    </div>
+
+    <div class="subtab-panel" id="subpanel-leden">
+      <p class="modal-text">Bepaal per lid welke tabbladen zichtbaar zijn. Wijzigingen gaan direct in. Verwijder je iemand, dan wordt de join-code automatisch vernieuwd zodat diegene niet zomaar opnieuw kan joinen.</p>
+      <div class="leden-list" id="leden-list"></div>
+    </div>
+
+    <div class="subtab-panel" id="subpanel-algemeen">
+      <div class="settings-info-row" id="row-mijn-naam">
+        <span>Jouw naam</span>
+        <span class="settings-info-value-group">
+          <span id="info-mijn-naam">—</span>
+          <button type="button" class="mini-btn edit" id="btn-rename-mijn-naam">Bewerken</button>
+        </span>
+      </div>
+      <div class="settings-info-row">
+        <span>Restaurantnaam</span>
+        <span class="settings-info-value-group">
+          <span id="info-naam">—</span>
+          <button type="button" class="mini-btn edit" id="btn-rename-restaurant" style="display:none;">Bewerken</button>
+        </span>
+      </div>
+      <div class="settings-info-row">
+        <span>Achtergrondkleur</span>
+        <span class="settings-info-value-group">
+          <span class="color-swatch-preview" id="info-header-color"></span>
+          <button type="button" class="mini-btn edit" id="btn-header-color" style="display:none;">Wijzigen</button>
+        </span>
+      </div>
+      <div class="settings-info-row">
+        <span>Naamkleur</span>
+        <span class="settings-info-value-group">
+          <span class="color-swatch-preview" id="info-title-color"></span>
+          <button type="button" class="mini-btn edit" id="btn-title-color" style="display:none;">Wijzigen</button>
+        </span>
+      </div>
+      <div class="settings-info-row">
+        <span>Lettertype</span>
+        <span class="settings-info-value-group">
+          <span id="info-font">Standaard</span>
+          <button type="button" class="mini-btn edit" id="btn-font" style="display:none;">Wijzigen</button>
+        </span>
+      </div>
+      <div class="settings-info-row" id="row-join-code" style="display:none;">
+        <span>Join-code</span>
+        <span class="code-display small" id="info-code">—</span>
+      </div>
+      <p class="modal-text" id="join-code-hint" style="display:none;">Geef deze code aan personeel of medewerkers zodat zij dit restaurant kunnen joinen op het startscherm.</p>
+
+      <div class="settings-danger-zone">
+        <button type="button" class="btn-danger" id="btn-leave-restaurant">🚪 Restaurant verlaten</button>
+        <p class="modal-text" id="leave-restaurant-hint"></p>
+      </div>
+    </div>
+
+    <div class="subtab-panel" id="subpanel-zelfservice">
+      <div class="settings-section-title">Zelfservice QR-code</div>
+      <p class="modal-text">Klanten kunnen deze QR-code scannen om vanaf hun eigen telefoon te bestellen. De QR-code is uniek voor dit restaurant.</p>
+      <div class="settings-info-row">
+        <span>Zelfservice link</span>
+        <span class="settings-info-value-group"><span id="selfservice-url" style="word-break:break-all;">—</span></span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;">
+        <button type="button" class="mini-btn edit" id="btn-selfservice-scan">📱 Openen / scannen</button>
+        <button type="button" class="mini-btn edit" id="btn-selfservice-pdf">📄 QR downloaden als PDF</button>
+      </div>
+      <div id="selfservice-qr" style="background:#fff;padding:16px;width:max-content;border-radius:12px;"></div>
+      <p class="modal-text" style="margin-top:12px;">Tip: download de PDF en print hem op de tafels.</p>
+    </div>
+  </section>
+</div>
+
+<!-- Modal: bestelling plaatsen voor een tafel -->
+<div class="modal-overlay" id="modal-order">
+  <div class="modal-box wide">
+    <div class="modal-title" id="order-modal-title">Tafel</div>
+    <div class="order-products" id="order-products"></div>
+    <textarea class="note-field" id="order-note" placeholder="Opmerking (optioneel)"></textarea>
+    <div class="modal-error" id="order-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="order-confirm">Bestelling sturen naar keuken</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: keuze bij tafel met openstaande bestelling(en) -->
+<div class="modal-overlay" id="modal-table-choice">
+  <div class="modal-box">
+    <div class="modal-title" id="table-choice-title">Tafel</div>
+    <div class="modal-actions" style="flex-direction:column; align-items:stretch; margin-top:0;">
+      <button type="button" class="primary-btn" id="choice-new-order">🍽 Bestelling opnemen</button>
+      <button type="button" class="toggle-btn" id="choice-view-bill">🧾 Bestelde dingen</button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: bestelde dingen / rekening & betalen -->
+<div class="modal-overlay" id="modal-bill">
+  <div class="modal-box wide">
+    <div class="modal-title" id="bill-modal-title">Rekening</div>
+    <div class="order-products" id="bill-items"></div>
+    <div class="bill-total" id="bill-total"></div>
+    <div class="modal-error" id="bill-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Sluiten</button>
+      <button type="button" class="btn-primary" id="bill-pay-btn">Betalen</button>
+    </div>
+    <div class="bill-confirm" id="bill-confirm" style="display:none;">
+      <p class="modal-text">Bevestig de betaling van <strong id="bill-confirm-amount"></strong> voor <span id="bill-confirm-kind">tafel</span> <strong id="bill-confirm-table"></strong>.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="bill-pay-cancel">Terug</button>
+        <button type="button" class="btn-primary" id="bill-pay-confirm">✅ Betaald</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: restaurantnaam wijzigen -->
+<div class="modal-overlay" id="modal-rename-restaurant">
+  <div class="modal-box">
+    <div class="modal-title">Restaurantnaam wijzigen</div>
+    <input type="text" id="rename-restaurant-input" class="modal-input" maxlength="40">
+    <div class="modal-error" id="rename-restaurant-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="rename-restaurant-confirm">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: eigen naam wijzigen -->
+<div class="modal-overlay" id="modal-rename-mijn-naam">
+  <div class="modal-box">
+    <div class="modal-title">Jouw naam wijzigen</div>
+    <input type="text" id="rename-mijn-naam-input" class="modal-input" maxlength="30">
+    <div class="modal-error" id="rename-mijn-naam-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="rename-mijn-naam-confirm">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: gebied naam -->
+<div class="modal-overlay" id="modal-area-name">
+  <div class="modal-box">
+    <div class="modal-title">Naam van het gebied</div>
+    <input type="text" id="area-name-input" class="modal-input" placeholder="Bijv. Terras" maxlength="30">
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="area-name-confirm">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: tafelnummer / banknummer -->
+<div class="modal-overlay" id="modal-table-number">
+  <div class="modal-box">
+    <div class="modal-title" id="table-number-modal-title">Tafelnummer</div>
+    <input type="number" id="table-number-input" class="modal-input" placeholder="Bijv. 4" min="1">
+    <div class="fp-shape-row" id="table-shape-row">
+      <span class="modal-label" style="margin:0 0 8px;">Vorm van de tafel</span>
+      <div class="fp-shape-options" id="table-shape-options">
+        <button type="button" class="fp-shape-btn" data-shape="rond">⚪ Rond</button>
+        <button type="button" class="fp-shape-btn" data-shape="vierkant">◻️ Vierkant</button>
+        <button type="button" class="fp-shape-btn" data-shape="rechthoek">▭ Rechthoekig</button>
+      </div>
+    </div>
+    <div class="fp-shape-row" id="bank-orientation-row">
+      <span class="modal-label" style="margin:0 0 8px;">Richting van de bank</span>
+      <div class="fp-shape-options" id="bank-orientation-options">
+        <button type="button" class="fp-shape-btn" data-orientation="horizontaal">↔️ Horizontaal</button>
+        <button type="button" class="fp-shape-btn" data-orientation="verticaal">↕️ Verticaal</button>
+      </div>
+    </div>
+    <div class="modal-error" id="table-number-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="table-number-confirm">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: naam van bar/keuken -->
+<div class="modal-overlay" id="modal-building-name">
+  <div class="modal-box">
+    <div class="modal-title" id="building-name-modal-title">Naam</div>
+    <input type="text" id="building-name-input" class="modal-input" placeholder="Bijv. Bar" maxlength="30">
+    <div class="modal-error" id="building-name-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="building-name-confirm">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: kleur bovenbalk kiezen -->
+<div class="modal-overlay" id="modal-header-color">
+  <div class="modal-box">
+    <div class="modal-title">Achtergrondkleur</div>
+    <p class="modal-text">Kies een kleur voor de achtergrond van de hele app.</p>
+    <button type="button" class="color-swatch color-swatch-default" id="header-color-default" title="Standaard" style="background:#171310; color:#f3ead9;">↺</button>
+    <div class="color-palette" id="color-palette"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: kleur restaurantnaam kiezen -->
+<div class="modal-overlay" id="modal-title-color">
+  <div class="modal-box">
+    <div class="modal-title">Naamkleur</div>
+    <p class="modal-text">Kies een kleur voor de letters van je restaurantnaam bovenaan.</p>
+    <button type="button" class="color-swatch color-swatch-default" id="title-color-default" title="Standaard (goud)" style="background:linear-gradient(100deg, #f2e2ac 20%, #c9a24b 45%, #f2e2ac 70%);">↺</button>
+    <div class="color-palette" id="title-color-palette"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: lettertype kiezen -->
+<div class="modal-overlay" id="modal-font">
+  <div class="modal-box wide">
+    <div class="modal-title">Lettertype</div>
+    <p class="modal-text">Kies een lettertype voor alle tekst in je restaurant.</p>
+    <button type="button" class="color-swatch color-swatch-default" id="font-default" title="Standaard" style="background:var(--bg-elevated); color:var(--gold-soft);">↺</button>
+    <div class="font-palette" id="font-palette"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: update log -->
+<div class="modal-overlay" id="modal-updates">
+  <div class="modal-box wide">
+    <div class="modal-title">📋 Update log</div>
+    <div class="updates-list" id="updates-list"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: product toevoegen/bewerken -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal-box wide">
+    <div class="modal-title" id="product-modal-title">Nieuw product</div>
+    <label class="modal-label">Naam</label>
+    <input type="text" id="product-name-input" class="modal-input" placeholder="Bijv. Fanta" maxlength="40">
+    <label class="modal-label">Prijs (€)</label>
+    <input type="number" id="product-price-input" class="modal-input" placeholder="Bijv. 2.50" step="0.05" min="0">
+    <label class="modal-label">Opmerkingen om aan te vinken bij bestellen (optioneel)</label>
+    <p class="modal-text" style="margin-top:-6px;">Bijv. "Zonder ijsklontjes", "Extra pittig". De klant kan deze per besteld stuk aanvinken, en er kunnen er meerdere tegelijk gekozen worden.</p>
+    <div class="product-options-list" id="product-options-list"></div>
+    <button type="button" class="btn-secondary product-option-open-btn" id="product-option-open-btn">+ Opmerking toevoegen</button>
+
+    <div class="product-option-picker" id="product-option-picker" style="display:none;">
+      <div class="product-option-picker-existing" id="product-option-existing"></div>
+      <label class="modal-label" style="margin-top:0;">Nieuwe opmerking</label>
+      <p class="modal-text" style="margin-top:-6px;">Kies eventueel een emoji en typ de opmerking.</p>
+      <div class="option-emoji-picker" id="option-emoji-picker"></div>
+      <div class="product-options-add">
+        <input type="text" id="product-option-input" class="modal-input" placeholder="Typ een nieuwe opmerking" maxlength="40">
+        <button type="button" class="btn-secondary" id="product-option-add-btn">+ Toevoegen</button>
+        <button type="button" class="btn-secondary" id="product-option-cancel-edit-btn" style="display:none;">Annuleren</button>
+      </div>
+    </div>
+    <label class="modal-label">Emoji</label>
+    <div class="emoji-picker" id="emoji-picker"></div>
+    <div class="modal-error" id="product-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="product-confirm">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script>
+  // Laadt onze eigen bestanden altijd vers, zodat je nooit meer handmatig een
+  // versienummer hoeft te verhogen om cache-problemen te voorkomen.
+  (function () {
+    var v = Date.now();
+    ['firebase-config.js', 'emojis.js', 'restaurant.js', 'updates.js'].forEach(function (file) {
+      document.write('<script src="' + file + '?v=' + v + '"><' + '/script>');
+    });
+  })();
+</script>
+
+</body>
+</html>

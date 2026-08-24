@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bestelsysteem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" id="app-style-link">
+<script>document.getElementById('app-style-link').setAttribute('href', 'style.css?v=' + Date.now());</script>
+</head>
+<body>
+
+<div class="landing-wrap">
+  <div class="landing-topbar">
+    <button type="button" class="updates-btn" id="btn-updates">🆕 Update log</button>
+  </div>
+  <div class="landing-emblem">🍽</div>
+  <h1 class="brand-name">Bestelsysteem</h1>
+  <p class="brand-sub">Kies je restaurant</p>
+
+  <div class="landing-section">
+    <div class="landing-section-title">Mijn restaurants</div>
+    <div id="my-restaurants" class="my-restaurants"></div>
+    <div id="max-msg" class="max-msg" style="display:none;">Je zit op het maximum van 2 restaurants. Verlaat er eerst één om een nieuwe te maken of joinen.</div>
+  </div>
+
+  <div class="landing-actions" id="landing-actions">
+    <button type="button" class="big-choice order" id="btn-open-create">Restaurant maken</button>
+    <button type="button" class="big-choice kitchen" id="btn-open-join">Restaurant joinen</button>
+  </div>
+
+  <button type="button" class="admin-link" id="btn-admin">🔧 Restaurant beheer</button>
+</div>
+
+<!-- Modal: nieuw restaurant -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal-box">
+    <div class="modal-title">Nieuw restaurant</div>
+    <label class="modal-label">Naam van je restaurant</label>
+    <input type="text" id="create-name" class="modal-input" placeholder="Bijv. Het Goedkoop" maxlength="40">
+    <label class="modal-label">Jouw naam</label>
+    <input type="text" id="create-my-name" class="modal-input" placeholder="Bijv. Sam" maxlength="30">
+    <div class="modal-error" id="create-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="create-confirm">Aanmaken</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: join met code -->
+<div class="modal-overlay" id="modal-join">
+  <div class="modal-box">
+    <div class="modal-title">Restaurant joinen</div>
+    <label class="modal-label">Code van de eigenaar</label>
+    <input type="text" id="join-code" class="modal-input code-input" placeholder="BIJV. AB12CD" maxlength="8" autocapitalize="characters">
+    <label class="modal-label">Jouw naam</label>
+    <input type="text" id="join-my-name" class="modal-input" placeholder="Bijv. Sam" maxlength="30">
+    <div class="modal-error" id="join-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="join-confirm">Joinen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: update log -->
+<div class="modal-overlay" id="modal-updates">
+  <div class="modal-box wide">
+    <div class="modal-title">📋 Update log</div>
+    <div class="updates-list" id="updates-list"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: code tonen na aanmaken -->
+<div class="modal-overlay" id="modal-code-shown">
+  <div class="modal-box">
+    <div class="modal-title">Restaurant aangemaakt! 🎉</div>
+    <p class="modal-text">Geef deze code aan anderen zodat zij jouw restaurant kunnen joinen:</p>
+    <div class="code-display" id="code-display"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" id="code-shown-ok">Naar mijn restaurant</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: restaurant beheer inloggen / eerste keer instellen -->
+<div class="modal-overlay" id="modal-admin-login">
+  <div class="modal-box">
+    <div class="modal-title" id="admin-login-title">🔧 Restaurant beheer</div>
+    <p class="modal-text" id="admin-setup-intro" style="display:none;">Er is nog geen sitebeheerder ingesteld. Stel hieronder een e-mailadres en wachtwoord in — dit wordt onthouden, en vanaf nu moet iedereen hiermee inloggen.</p>
+    <label class="modal-label">E-mailadres</label>
+    <input type="email" id="admin-email-input" class="modal-input" placeholder="jij@voorbeeld.nl" autocomplete="off">
+    <label class="modal-label">Wachtwoord</label>
+    <input type="password" id="admin-password-input" class="modal-input" placeholder="Wachtwoord" autocomplete="off">
+    <label class="modal-label" id="admin-password-confirm-label" style="display:none;">Bevestig wachtwoord</label>
+    <input type="password" id="admin-password-confirm-input" class="modal-input" placeholder="Wachtwoord herhalen" autocomplete="off" style="display:none;">
+    <div class="modal-error" id="admin-login-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="admin-login-confirm">Inloggen</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script>
+  // Laadt onze eigen bestanden altijd vers, zodat je nooit meer handmatig een
+  // versienummer hoeft te verhogen om cache-problemen te voorkomen.
+  (function () {
+    var v = Date.now();
+    ['firebase-config.js', 'admin-config.js', 'landing.js', 'admin-login.js', 'updates.js'].forEach(function (file) {
+      document.write('<script src="' + file + '?v=' + v + '"><' + '/script>');
+    });
+  })();
+</script>
+
+</body>
+</html>
