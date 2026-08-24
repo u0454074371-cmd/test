@@ -24,7 +24,6 @@ let myOrders = {};
 let selectedTable = null;
 let counts = {};
 let optionsByProduct = {};
-let iceByProduct = {};
 let allOrders = {};
 
 function esc(v) {
@@ -115,7 +114,6 @@ function renderProducts() {
   entries.forEach(([key,p]) => {
     if (counts[key] == null) counts[key] = 0;
     if (!optionsByProduct[key]) optionsByProduct[key] = [];
-    if (!iceByProduct[key]) iceByProduct[key] = [];
     const card = document.createElement('div');
     card.className = 'selfservice-product';
     const out = !!STOCK[key];
@@ -132,8 +130,6 @@ function renderProducts() {
     const opts = optionsFor(p);
     const n = counts[key] || 0;
     if (n > 0) {
-      while (iceByProduct[key].length < n) iceByProduct[key].push(false);
-      while (iceByProduct[key].length > n) iceByProduct[key].pop();
       while (optionsByProduct[key].length < n) optionsByProduct[key].push([]);
       while (optionsByProduct[key].length > n) optionsByProduct[key].pop();
       for (let i = 0; i < n; i++) {
@@ -142,11 +138,6 @@ function renderProducts() {
         if (n > 1) {
           const tag = document.createElement('span'); tag.className = 'selfservice-option-unit-tag'; tag.textContent = '#' + (i + 1); row.appendChild(tag);
         }
-        const ice = document.createElement('button');
-        ice.className = 'selfservice-option-button' + (iceByProduct[key][i] ? ' active' : '');
-        ice.textContent = iceByProduct[key][i] ? '✅ 🧊 IJsklontjes' : '🧊 IJsklontjes';
-        ice.onclick = () => { iceByProduct[key][i] = !iceByProduct[key][i]; renderProducts(); };
-        row.appendChild(ice);
         opts.forEach(o => {
           const outOpt = !!STOCK_OPTIONS[String(o.label).toLowerCase()];
           const b = document.createElement('button');
@@ -178,14 +169,11 @@ function submitOrder() {
 
   const items = {};
   const itemOpties = {};
-  const itemIce = {};
   Object.entries(counts).forEach(([key,n]) => {
     if (n > 0 && !STOCK[key]) {
       items[key] = n;
       const opts = optionsByProduct[key] || [];
-      const ice = iceByProduct[key] || [];
       if (opts.some(x => Array.isArray(x) && x.length)) itemOpties[key] = opts.map(x => Array.isArray(x) ? x.slice() : []);
-      if (ice.some(Boolean)) itemIce[key] = ice.map(Boolean);
     }
   });
   if (!Object.keys(items).length) { sendError.textContent = 'Kies eerst minstens één product.'; return; }
@@ -200,13 +188,11 @@ function submitOrder() {
   const note = document.getElementById('note').value.trim();
   if (note) order.opmerking = note;
   if (Object.keys(itemOpties).length) order.itemOpties = itemOpties;
-  if (Object.keys(itemIce).length) order.itemIce = itemIce;
 
   document.getElementById('send').disabled = true;
   restRef.child('orders').push().set(order).then(() => {
     counts = {};
     optionsByProduct = {};
-    iceByProduct = {};
     selectedTable = null;
     document.getElementById('note').value = '';
     document.getElementById('tab-mine').click();
@@ -248,12 +234,10 @@ function positionBefore(id, order) {
   // ineens de wachtrij van een bestelling die al 'bereiden' is veranderen.
   const phase = order.status;
   const ahead = Object.entries(allOrders)
-    .filter(([oid, o]) => oid !== id && o && o.status === phase)
-    .sort((a, b) => (a[1].tijd || 0) - (b[1].tijd || 0));
+    .filter(([oid, o]) => oid !== id && o && o.status === phase);
 
-  const index = ahead.findIndex(([oid]) => oid === id);
-  // De eigen bestelling staat niet in 'ahead', dus tel alle oudere
-  // bestellingen in dezelfde fase met een eerdere tijd.
+  // Tel alle andere bestellingen in dezelfde fase die er eerder waren
+  // (eerdere tijd = eerder binnengekomen = voor jou in de rij).
   return ahead.filter(([, o]) => (o.tijd || 0) < (order.tijd || 0)).length;
 }
 
