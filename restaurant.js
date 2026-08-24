@@ -1545,7 +1545,6 @@ function onResizeStart(e) {
 let currentOrderTable = null;
 let orderCounts = {};      // key -> aantal
 let orderItemOptions = {}; // key -> array (per besteld stuk) van gekozen opmerkingen
-let orderItemIce = {};    // key -> array (per besteld stuk) of er ijsklontjes gekozen zijn
 let stockStatus = {};      // productKey -> uitverkocht?
 let optionStockStatus = {}; // optieLabel (lowercase) -> uitverkocht?
 
@@ -1630,8 +1629,7 @@ function openOrderModalForTable(table) {
   currentOrderTable = table;
   orderCounts = {};
   orderItemOptions = {};
-  orderItemIce = {};
-  productList().forEach(p => { orderCounts[p.key] = 0; orderItemOptions[p.key] = []; orderItemIce[p.key] = []; });
+  productList().forEach(p => { orderCounts[p.key] = 0; orderItemOptions[p.key] = []; });
   document.getElementById('order-modal-title').textContent = `${kindWoord(table)} ${table.number}`;
   document.getElementById('order-note').value = '';
   document.getElementById('order-error').textContent = '';
@@ -1654,7 +1652,7 @@ function renderOrderProducts() {
   }
   container.innerHTML = '';
   items.forEach(p => {
-    if (orderCounts[p.key] === undefined) { orderCounts[p.key] = 0; orderItemOptions[p.key] = []; orderItemIce[p.key] = []; }
+    if (orderCounts[p.key] === undefined) { orderCounts[p.key] = 0; orderItemOptions[p.key] = []; }
     const isOut = !!stockStatus[p.key];
     const card = document.createElement('div');
     card.className = 'product-card' + (isOut ? ' out-of-stock' : '');
@@ -1704,11 +1702,8 @@ function renderOrderOptionToggles(key) {
 
   const n = orderCounts[key] || 0;
   if (!orderItemOptions[key]) orderItemOptions[key] = [];
-  if (!orderItemIce[key]) orderItemIce[key] = [];
   while (orderItemOptions[key].length < n) orderItemOptions[key].push([]);
   while (orderItemOptions[key].length > n) orderItemOptions[key].pop();
-  while (orderItemIce[key].length < n) orderItemIce[key].push(false);
-  while (orderItemIce[key].length > n) orderItemIce[key].pop();
 
   orderItemOptions[key].forEach((selected, i) => {
     const row = document.createElement('div');
@@ -1719,15 +1714,6 @@ function renderOrderOptionToggles(key) {
       tag.textContent = `#${i + 1}`;
       row.appendChild(tag);
     }
-    const iceBtn = document.createElement('button');
-    iceBtn.type = 'button';
-    iceBtn.className = 'ice-chip' + (orderItemIce[key][i] ? ' met' : '');
-    iceBtn.textContent = orderItemIce[key][i] ? '✅ 🧊 IJsklontjes' : '🧊 IJsklontjes';
-    iceBtn.addEventListener('click', () => {
-      orderItemIce[key][i] = !orderItemIce[key][i];
-      renderOrderOptionToggles(key);
-    });
-    row.appendChild(iceBtn);
 
     opties.forEach(opt => {
       const active = selected.includes(opt.label);
@@ -1762,12 +1748,9 @@ document.getElementById('order-confirm').addEventListener('click', () => {
   }
 
   const itemOpties = {};
-  const itemIce = {};
   Object.keys(items).forEach(key => {
     const opts = orderItemOptions[key] || [];
-    const ice = orderItemIce[key] || [];
     if (opts.some(sel => sel.length > 0)) itemOpties[key] = opts.map(sel => sel.slice());
-    if (ice.some(Boolean)) itemIce[key] = ice.map(Boolean);
   });
 
   const orderData = {
@@ -1779,7 +1762,6 @@ document.getElementById('order-confirm').addEventListener('click', () => {
   const opmerking = document.getElementById('order-note').value.trim();
   if (opmerking) orderData.opmerking = opmerking;
   if (Object.keys(itemOpties).length > 0) orderData.itemOpties = itemOpties;
-  if (Object.keys(itemIce).length > 0) orderData.itemIce = itemIce;
 
   restRef.child('orders').push().set(orderData).then(() => {
     closeModal('modal-order');
