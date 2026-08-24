@@ -1004,6 +1004,9 @@ header.top a:hover { color: var(--gold-soft); border-color: var(--gold); }
 .btn-secondary { background: transparent; color: var(--muted); border-color: var(--line); }
 .btn-secondary:hover { color: var(--ink); border-color: var(--gold); }
 
+.owner-warning-box { max-width: 420px; border-top-color: #d9a24a; text-align: center; }
+.owner-warning-icon { font-size: 2.8rem; line-height: 1; margin-bottom: 10px; }
+
 .code-display {
   font-family: var(--font-mono);
   font-size: 2rem;
