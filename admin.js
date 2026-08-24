@@ -62,6 +62,7 @@ function renderAdminRestaurants(data) {
       <div class="admin-restaurant-actions">
         <button type="button" class="mini-btn edit" data-view="${id}">Bekijken &amp; beheren</button>
         <button type="button" class="mini-btn edit" data-edit="${id}">Naam</button>
+        <button type="button" class="mini-btn edit" data-warn="${id}">⚠️ Waarschuwing</button>
         <button type="button" class="mini-btn danger" data-delete="${id}">Verwijderen</button>
       </div>
     `;
@@ -75,6 +76,10 @@ function renderAdminRestaurants(data) {
     card.querySelector('[data-edit]').addEventListener('click', (e) => {
       e.stopPropagation();
       openAdminRename(id, r.naam || '');
+    });
+    card.querySelector('[data-warn]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openAdminWarning(id, r.naam || 'dit restaurant');
     });
     card.querySelector('[data-delete]').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -106,6 +111,42 @@ document.getElementById('admin-rename-confirm').addEventListener('click', () => 
   db.ref('restaurants/' + editingRestaurantId + '/naam').set(naam).then(() => {
     btn.disabled = false;
     closeModal('modal-admin-rename');
+  }).catch(err => {
+    console.error(err);
+    btn.disabled = false;
+    errorEl.textContent = 'Er ging iets mis, probeer opnieuw.';
+  });
+});
+
+// ==================== Waarschuwing naar restaurant sturen ====================
+// De waarschuwing wordt in Firebase gezet en verschijnt de eerstvolgende keer
+// dat de eigenaar (niet de admin zelf) het restaurant opent, groot in beeld.
+// Zodra de eigenaar op "Oké" drukt, wordt de waarschuwing verwijderd en komt
+// hij dus nooit meer terug (tenzij er een nieuwe wordt verstuurd).
+let editingWarningRestaurantId = null;
+
+function openAdminWarning(id, naam) {
+  editingWarningRestaurantId = id;
+  document.getElementById('admin-warning-restaurant-name').textContent = `Voor: ${naam}`;
+  document.getElementById('admin-warning-input').value = '';
+  document.getElementById('admin-warning-error').textContent = '';
+  openModal('modal-admin-warning');
+}
+
+document.getElementById('admin-warning-confirm').addEventListener('click', () => {
+  const tekst = document.getElementById('admin-warning-input').value.trim();
+  const errorEl = document.getElementById('admin-warning-error');
+  if (!tekst) { errorEl.textContent = 'Vul een bericht in.'; return; }
+  if (!editingWarningRestaurantId) return;
+
+  const btn = document.getElementById('admin-warning-confirm');
+  btn.disabled = true;
+  db.ref('restaurants/' + editingWarningRestaurantId + '/warning').set({
+    text: tekst,
+    createdAt: Date.now()
+  }).then(() => {
+    btn.disabled = false;
+    closeModal('modal-admin-warning');
   }).catch(err => {
     console.error(err);
     btn.disabled = false;
