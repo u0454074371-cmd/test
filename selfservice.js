@@ -191,9 +191,9 @@ function submitOrder() {
 
   document.getElementById('send').disabled = true;
   restRef.child('orders').push().set(order).then(() => {
-    counts = {};
-    optionsByProduct = {};
-    selectedTable = null;
+    // Bewust NIET de aantallen/opmerkingen resetten: als je nog een bestelling
+    // plaatst, blijft staan wat je al had aangeklikt (bijv. handig als je
+    // meteen nog een rondje van hetzelfde wilt bestellen).
     document.getElementById('note').value = '';
     document.getElementById('tab-mine').click();
   }).catch(err => {
