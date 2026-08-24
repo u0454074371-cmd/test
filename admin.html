@@ -46,6 +46,22 @@
   </div>
 </div>
 
+<!-- Modal: waarschuwing naar restaurant sturen (admin) -->
+<div class="modal-overlay" id="modal-admin-warning">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ Waarschuwing versturen</div>
+    <p class="modal-text" id="admin-warning-restaurant-name" style="margin-top:-10px;"></p>
+    <label class="modal-label" style="margin-top:0;">Bericht</label>
+    <textarea id="admin-warning-input" class="modal-input" rows="4" maxlength="500" placeholder="Bijv. Je restaurant heeft nog geen producten ingesteld, vul dit zo snel mogelijk aan."></textarea>
+    <p class="modal-text" style="margin-bottom:0;">Dit bericht komt groot in beeld zodra de eigenaar het restaurant opent, tot hij op Oké drukt.</p>
+    <div class="modal-error" id="admin-warning-error"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-close>Annuleren</button>
+      <button type="button" class="btn-primary" id="admin-warning-confirm">Versturen</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script>
