@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zelfservice bestellen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="firebase-config.js"></script>
+</head>
+<body class="selfservice-page">
+<div class="wrap selfservice-wrap">
+  <div class="selfservice-brand-line"><span>ONLINE BESTELLEN</span><span class="selfservice-dot">◆</span><span>TAFELSERVICE</span></div>
+<header class="top selfservice-top"><div class="top-title-group"><div><div class="selfservice-kicker">Welkom bij</div><h1 id="restaurant-name">Restaurant</h1></div><span class="selfservice-subtitle">Zelfservice</span></div></header>
+<div id="error" class="selfservice-error"></div>
+<div id="app" class="selfservice-hidden">
+<div class="selfservice-tabs">
+<button id="tab-order" class="selfservice-tab active"><span>🛒</span> Bestellen</button>
+<button id="tab-mine" class="selfservice-tab"><span>📦</span> Mijn bestellingen</button>
+</div>
+<section id="order-view">
+<div class="selfservice-card"><div class="selfservice-card-head"><span class="selfservice-step-number">1</span><div><h2>Kies je tafel</h2><p>Waar zit je in het restaurant?</p></div></div><div id="tables" class="selfservice-tables"></div></div>
+<div class="selfservice-card"><div class="selfservice-card-head"><span class="selfservice-step-number">2</span><div><h2>Kies je producten</h2><p>Stel je bestelling samen.</p></div></div><div id="products" class="selfservice-products"></div></div>
+<div class="selfservice-card"><div class="selfservice-card-head"><span class="selfservice-step-number">3</span><div><h2>Extra opmerking</h2><p>Optioneel voor de keuken.</p></div></div><textarea id="note" class="selfservice-note" placeholder="Bijvoorbeeld: graag zonder ijs"></textarea><button id="send" class="selfservice-send">Bestelling naar de keuken sturen <span>→</span></button><div id="send-error" class="selfservice-error"></div></div>
+</section>
+<section id="mine-view" class="selfservice-hidden"><div id="mine"></div></section>
+</div>
+</div>
+<script src="selfservice.js"></script>
+</body>
+</html>
